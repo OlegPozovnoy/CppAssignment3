@@ -1,40 +1,41 @@
 ﻿// Assignment3.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
-#include"pch.h"
 #include<iostream>
 #include<string>
 #include<algorithm>
+
+using namespace std;// ok, probably overreacted during my assignment1)
+
+void romanAssignment();// main function for the Roman numbere conversion assignment
+
+void RomanToBase10();//Roman to decimal entry point
+void Base10ToRoman();//decimal to Roman entry point
+int RomanToBase10Silent(string roman);// helper to convert roman sring to decimal - only for [1,9999] range check, don't use stdout => faster
+void RomanAddition();// Add 2 romans entry point
+
+
+void RemoveSubtractives(string& roman);// helper to expand roman substractive notation
+void AddSubtractives(string& roman);// helper to put Roman substractive notation
+int decode(char t); // helper for single Roman char to decimal conversion
+void sortString(string& roman); // sort "roman" string in accordance to Roman decimal values (using decode function).
+
+void encodeAssignment(); 
+bool replace(string& str, const string& from, const string& to);// helper to replace each occurance of "from" substring to "to" substring in the string str;
+
 using namespace std;
 
-void romanAssignment();
-void RomantoBase10();
-void RomanAddition();
-void RemoveSubtractives(string& roman);
-void AddSubtractives(string& roman);
-void Base10ToRoman();
-int decode(char t);
-void encodeAssignment();
-void sortString(string& roman);
-bool replace(std::string& str, const std::string& from, const std::string& to);
-
-using namespace std;
 
 class Encrypt {
 
-private:
-	string original = "";
-	string encrypted = "";
-	string prepared = "";
-
 public:
-	void display() {
+	void display() const {
 		cout << "\n\nThe encrypted data: " << encrypted;
 		cout << "\n\nThe original data: " << original;
 
 	}
 
-	void display_encryption(string key) {
+	void display_encryption(const string& key) const {
 
 		cout << "\n\nOriginal Text: " << this->original;
 		cout << "\nKey: " << key;
@@ -42,34 +43,34 @@ public:
 		cout << "\nEncrypted Text: " << this->encrypted;
 	}
 
-	void display_decryption(string key, string decrypted) {
+	void display_decryption(const string& key, const string& decrypted) const {
 		cout << "\n\nKey: " << key;
 		cout << "\nEncrypted Text: " << this->encrypted;
 		cout << "\nOriginal Text: " << decrypted;
 	}
 
-	void set_original(string original) {
+	void set_original(const string original) {
 		this->original = original;
 	}
 
-	void set_encrypted(string encrypted) {
+	void set_encrypted(const string encrypted) {
 		this->encrypted = encrypted;
 	}
 
-	void set_prepared(string prepared) {
+	void set_prepared(const string prepared) {
 		this->prepared = prepared;
 	}
 
-	bool is_origin_exist() {
+	bool is_origin_exist() const {
 		return this->original.length() > 0;
 	}
 
-	bool is_encrypted_exist() {
+	bool is_encrypted_exist() const {
 		return this->encrypted.length() > 0;
 	}
 
 
-	void XOR_encrypt(char key) {
+	void XOR_encrypt(const char key) {
 		this->encrypted = "";
 
 		this->prepared = this->original;
@@ -84,7 +85,7 @@ public:
 		display_encryption(s);
 	}
 
-	string XOR_decrypt(char key) {
+	string XOR_decrypt(const char key) {
 		string result = "";
 
 		for (unsigned int i = 0; i < encrypted.length(); i++) {
@@ -98,10 +99,9 @@ public:
 		return result;
 	}
 
-	void Caesar_encrypt(int key) {
+	void Caesar_encrypt(const int key) {
 		
 		this->encrypted = "";
-
 		this->prepared = this->original;
 
 		for (unsigned int i = 0; i < prepared.length(); i++) {
@@ -114,7 +114,7 @@ public:
 		display_encryption(to_string(key));
 	}
 
-	string Caesar_decrypt(int key) {
+	string Caesar_decrypt(const int key) {
 		string result = "";
 
 		for (unsigned int i = 0; i < encrypted.length(); i++) {
@@ -131,16 +131,20 @@ public:
 		this->encrypted = "";
 
 		this->prepared = this->original;
+
+		//remove spaces
 		this->prepared.erase(remove_if(this->prepared.begin(), this->prepared.end(), isspace), this->prepared.end());
 		
+		//tolower case
 		transform(this->prepared.begin(), this->prepared.end(), this->prepared.begin(), ::tolower);
 		transform(key.begin(), key.end(), key.begin(), ::tolower);
+		
+		//making the key the same length as prepared word
 		string concatKey;
 		for (unsigned int i = 0; i < prepared.length(); i++)
 			concatKey += key[i%key.length()];
 
-		//concatKey = concatKey.substr(0, prepared.length());
-
+		//encoding the string
 		for (unsigned int i = 0; i < prepared.length(); i++) {
 			this->encrypted += string(1,((this->prepared[i]) - 'a' + (concatKey[i]) - 'a')%26+'a');
 		}
@@ -149,14 +153,13 @@ public:
 	}
 
 	string Vigenere_decrypt(string key) {
-
+		//preparing a key for decoding with the same length as encrypted message
 		string concatKey;
 		for (unsigned int i = 0; i < encrypted.length(); i++)
 			concatKey += tolower( key[i%key.length()]);
 
-
+		//decoding
 		string result = "";
-
 		for (unsigned int i = 0; i < encrypted.length(); i++) {
 			result += string(1, (tolower(this->encrypted[i]) - (concatKey[i]) +26) % 26 + 'a');
 		}
@@ -164,6 +167,12 @@ public:
 		display_decryption(concatKey,result);
 		return result;
 	}
+
+private:
+	string original = "";
+	string encrypted = "";
+	string prepared = "";
+
 };
 
 void encription_menu(Encrypt& encrypt);
@@ -172,14 +181,14 @@ void decription_menu(Encrypt& encrypt);
 int main()
 {
 	int pick;
-	std::cout << "Welcome to the assignment 3, please pick a task to run:";
+	cout << "Welcome to the assignment 3, please pick a task to run:";
 
 	do {
-		std::cout << "\n1 - Roman";
-		std::cout << "\n2 - Encode";
-		std::cout << "\n3 - Quit";
-		std::cout << "\n Please select the action: ";
-		std::cin >> pick;
+		cout << "\n1 - Roman";
+		cout << "\n2 - Encode";
+		cout << "\n3 - Quit";
+		cout << "\n Please select the action: ";
+		cin >> pick;
 
 		switch (pick) {
 		case 1:
@@ -191,11 +200,11 @@ int main()
 		case 3:
 			break;
 		default:
-			std::cout << "/nWrong input, please try again";
+			cout << "/nWrong input, please try again";
 		}
 	} while (pick != 3);
 
-	std::cout << "\nThank you for using the application.";
+	cout << "\nThank you for using the application.";
 
 }
 
@@ -217,7 +226,7 @@ void romanAssignment() {
 
 		switch (pick) {
 		case 1:
-			RomantoBase10();
+			RomanToBase10();
 			break;
 		case 2:
 			Base10ToRoman();
@@ -229,22 +238,29 @@ void romanAssignment() {
 			break;
 
 		default:
-			std::cout << "\nWrong input, please try again";
+			cout << "\nWrong input, please try again";
 		}
 	} while (pick != 4);
 
-	std::cout << "\nThank you for using the application";
+	cout << "\nThank you for using the application";
 
 }
 
-void RomantoBase10() {
+void RomanToBase10() {
+	
 	string roman;
 	int result = 0;
 
-	cout << "\n\nInput the Roman number: ";
+	do {
+		cout << "\n\nInput the Roman number from [1,9999] range: ";
+		cin >> roman;
+	
+		if (RomanToBase10Silent(roman) >= 10000) {
+			cout << "\nThe number you provided is >= 10000, please provide correct Roman number";
+		}
 
-	//getline(cin, roman);
-	cin >> roman;
+	} while (RomanToBase10Silent(roman) >= 10000);
+
 	RemoveSubtractives(roman);
 
 	cout << "\nStep1 - removing substractives, the resulting Romanian number is " << roman;
@@ -258,48 +274,56 @@ void RomantoBase10() {
 	cout << "\nIn Base 10 this is: " << result;
 }
 
+int RomanToBase10Silent(string roman) {
+	
+	int result = 0;
+	RemoveSubtractives(roman);
+	for (char character: roman) {
+		result += decode(character);
+	}
+	return result;
+}
+
 
 void Base10ToRoman() {
 	string result = "";
 	int decimal;
 
-	cout << "\n\nInput the base 10 number (< 9999 and > 0): ";
-	cin >> decimal;
+	do {		
+		cout << "\n\nInput the base 10 number (<= 9999 and > 0): ";
+		cin >> decimal;
+
+		if (decimal >= 10000 || decimal <= 0) {
+			cout << "\n Wrong input, the number should be in [1,9999] interval";
+		}
+	} while (decimal >= 10000 || decimal <= 0);
 
 	cout << "\nStep1, creating value without applying of substraction";
-
+	
 	for (int i = 0; i < decimal / 1000; i++)
 		result += "M";
-
 	decimal -= (decimal / 1000) * 1000;
 
 	for (int i = 0; i < decimal / 500; i++)
 		result += "D";
-
 	decimal -= (decimal / 500) * 500;
 
 	for (int i = 0; i < decimal / 100; i++)
 		result += "C";
-
 	decimal -= (decimal / 100) * 100;
 
 
 	for (int i = 0; i < decimal / 50; i++)
 		result += "L";
-
 	decimal -= (decimal / 50) * 50;
 
 	for (int i = 0; i < decimal / 10; i++)
 		result += "X";
-
 	decimal -= (decimal / 10) * 10;
-
 
 	for (int i = 0; i < decimal / 5; i++)
 		result += "V";
-
 	decimal -= (decimal / 5) * 5;
-
 
 	for (int i = 0; i < decimal; i++)
 		result += "I";
@@ -312,6 +336,11 @@ void Base10ToRoman() {
 }
 
 void sortString(string& roman) {
+
+	sort(roman.begin(), roman.end(), [](char i, char j) {return decode(i) > decode(j); });
+// shorter and moree efficient;
+
+/*
 	char tmp;
 
 	for (unsigned int i=0;i<roman.length();i++)
@@ -323,6 +352,7 @@ void sortString(string& roman) {
 				roman[j] = tmp;
 			}
 		}
+		*/
 }
 
 void AddSubtractives(string& roman) {
@@ -354,13 +384,19 @@ void RemoveSubtractives(string& roman) {
 
 void RomanAddition() {
 	string val1, val2;
-	cout << "\n\nInput the first Roman number :";
-	//getline(cin, val1);
-	cin >> val1;
-	cout << "\nInput the second Roman number : ";
-	//getline(cin , val2);
-	cin >> val2;
+	
+	do {
+		cout << "\n\nInput the first Roman number :";
+		cin >> val1;
+		cout << "\nInput the second Roman number : ";
+		cin >> val2;
 
+		int dec1 = RomanToBase10Silent(val1);
+		int dec2 = RomanToBase10Silent(val2);
+		if (dec1 + dec2 >= 10000) {
+			cout << "\nThe sum of numbers you provided is >= 10000 [" << dec1 << " + " << dec2 << " = " << dec1 + dec2 << "\nPlease, reenter the values";
+		}
+	} while (RomanToBase10Silent(val1) + RomanToBase10Silent(val2) >= 10000);
 
 	RemoveSubtractives(val1);
 	cout << "\nStep1: removing substractives from the addend 1: "<<val1;
@@ -376,9 +412,9 @@ void RomanAddition() {
 
 }
 
-bool replace(std::string& str, const std::string& from, const std::string& to) {
+bool replace(string& str, const string& from, const string& to) {
 	size_t start_pos = str.find(from);
-	if (start_pos == std::string::npos)
+	if (start_pos == string::npos)
 		return false;
 	str.replace(start_pos, from.length(), to);
 	return true;
@@ -425,10 +461,8 @@ void encodeAssignment() {
 		switch (pick) {
 		case 1:
 			cout << "\nPlease enter your original message:";
-			//cin.getline( original, 50);
-			std::cin.ignore(INT_MAX,'\n');
-			std::getline(std::cin, original);
-			//cin >> original;
+			cin.ignore(INT_MAX,'\n');
+			getline(cin, original);
 			encrypt.set_original(original);
 			break;
 		case 2:
@@ -454,11 +488,11 @@ void encodeAssignment() {
 			break;
 
 		default:
-			std::cout << "\nWrong input, please try again";
+			cout << "\nWrong input, please try again";
 		}
 	} while (pick != 4);
 
-	std::cout << "\nThank you for using the application";
+	cout << "\nThank you for using the application";
 
 
 }
@@ -511,7 +545,7 @@ void encription_menu(Encrypt& encrypt) {
 			return;
 
 		default:
-			std::cout << "\nWrong input, please try again";
+			cout << "\nWrong input, please try again";
 		}
 	} while (true);
 }
@@ -562,7 +596,7 @@ void decription_menu(Encrypt& encrypt) {
 			encrypt.Vigenere_decrypt(vigenereKey);
 			return;
 		default:
-			std::cout << "\nWrong input, please try again";
+			cout << "\nWrong input, please try again";
 		}
 	} while (true);
 
